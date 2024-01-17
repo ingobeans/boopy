@@ -68,6 +68,10 @@ def run(update_function, title:str="boopy", icon:str=None, screen_width:int=128,
         pygame.display.flip()
         clock.tick(FPS)
 
+def mouse()->tuple:
+    """Return the mouse position relative to the game window as a tuple"""
+    pygame.mouse.get_pos()
+
 def btn(key)->bool:
     """Return bool whether a key is pressed. Accepts either list of keys to check for, or single key.
     Examples: 
@@ -112,6 +116,9 @@ def cls(color=(0, 0, 0)):
 
 def load_spr(sprite:str):
     return pygame.image.load(sprite)
+
+def rect(x: int, y: int, x2: int, y2: int, color: tuple = (0, 0, 0)) -> None:
+    pygame.draw.rect(screen, color, (x*scale, y*scale, x2*scale - x*scale, y2*scale - y*scale))
 
 def spr(x, y, sprite):
     sprite = pygame.transform.scale(sprite, (sprite.get_width() * scale, sprite.get_height() * scale))
