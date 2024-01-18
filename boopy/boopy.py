@@ -7,14 +7,14 @@ from pygame.locals import *
 from pygame.font import *
 from screeninfo import get_monitors
 
-import csv, typing
+import csv, typing, pkg_resources, time
 
 pygame.init()
 
 screen = None
 clock = None
 scale = 1
-default_font = Font("monobit.ttf",16)
+default_font = Font(pkg_resources.resource_filename(__name__, "monobit.ttf"),16)
 key_states = {}
 current_framerate = 0
 FPS = 60
@@ -74,6 +74,8 @@ def run(update_function, title:str="boopy", icon:str=None, screen_width:int=128,
         screen = pygame.display.set_mode((screen_width * scale, screen_height * scale))
 
     clock = pygame.time.Clock()
+    last_check = time.time()
+    frames = 0
 
     # game loop
     while True:
@@ -82,7 +84,15 @@ def run(update_function, title:str="boopy", icon:str=None, screen_width:int=128,
                 pygame.quit()
                 exit()
 
-        current_framerate = clock.get_fps()
+        if FPS != None:
+            current_framerate = clock.get_fps()
+        else:
+            frames += 1
+            current_time = time.time()
+            if current_time - last_check >= 1:
+                last_check = current_time
+                current_framerate = frames
+                frames = 0
         update_function()
         pygame.display.flip()
         if FPS:
@@ -184,6 +194,9 @@ class Tilemap:
         
         self.map_surface = pygame.transform.scale(surface, (surface.get_width()*scale,surface.get_height()*scale))
     
+    def get_tile(self,x:int,y:int)->int:
+        return self.map_data[y][x]
+
 def draw_tilemap(x, y, tilemap: Tilemap):
     screen.blit(tilemap.map_surface, (x * scale, y * scale))   
 

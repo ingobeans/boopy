@@ -1,4 +1,4 @@
-import boopy, csv
+from boopy import boopy
 
 player_x = 16*8
 player_y = 16*8
@@ -32,5 +32,6 @@ def update():
     boopy.draw_tilemap(-player_x+screen_width/2,-player_y+screen_height/2,tilemap)
     boopy.draw_sprite(screen_width/2,screen_height/2,player_sprite)
     boopy.draw_text(1,-5,f"{boopy.get_fps()} FPS")
+    boopy.draw_text(1,8,f"{tilemap.get_tile(player_x//8,player_y//8)} - Tile at player")
 
-boopy.run(update_function=update,screen_width=screen_width,screen_height=screen_height,scaling=5,fps_cap=90)
+boopy.run(update_function=update,screen_width=screen_width,screen_height=screen_height,scaling=5,fps_cap=75)
