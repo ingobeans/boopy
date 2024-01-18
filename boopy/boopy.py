@@ -48,10 +48,24 @@ class Spritesheet:
         screen.blit(sprite, (x*scale, y*scale))
 
 def run(update_function, title:str="boopy", icon:str=None, screen_width:int=128, screen_height:int=128, scaling:int=1, fullscreen:bool=False, fps_cap:typing.Optional[int]=60):
+    """Runs game. Update_function is the function that will be called each frame. Parameter fps_cap can be an integer or set to None, which will unlock the frame rate.
+    
+    Scaling is how much to scale up the game window. If fullscreen is True, this will be ignored."""
     global screen, clock, scale, FPS, current_framerate
 
     FPS = fps_cap
     scale = scaling
+
+    # set up the display
+    pygame.display.set_caption(title)
+    if icon:
+        pygame.display.set_icon(pygame.image.load(icon))
+    if fullscreen:
+        height = get_monitors()[0].height
+        scale = height//screen_height
+        screen = pygame.display.set_mode((screen_width * scale, screen_height * scale),pygame.FULLSCREEN)
+    else:
+        screen = pygame.display.set_mode((screen_width * scale, screen_height * scale))
 
     for t in Spritesheet._register:
         t.preload_sprites(scale)
@@ -61,17 +75,6 @@ def run(update_function, title:str="boopy", icon:str=None, screen_width:int=128,
         t.preload_tilemap(scale)
     
     # sprites, spritesheets & tilemaps's surfaces must be preloaded after boopy is ran, when the scale has been defined
-
-    # set up the display
-    pygame.display.set_caption(title)
-    if icon:
-        pygame.display.set_icon(pygame.image.load(icon))
-    if fullscreen:
-        height = get_monitors()[0].height
-        scale = int(height/screen_height)
-        screen = pygame.display.set_mode((screen_width * scale, screen_height * scale),pygame.FULLSCREEN)
-    else:
-        screen = pygame.display.set_mode((screen_width * scale, screen_height * scale))
 
     clock = pygame.time.Clock()
     last_check = time.time()
