@@ -1,26 +1,38 @@
 import contextlib
+
 with contextlib.redirect_stdout(None):
     import pygame
+
 from pygame.locals import *
+from pygame.font import *
 from screeninfo import get_monitors
+
+import csv, typing
 
 pygame.init()
 
 screen = None
 clock = None
 scale = 1
+default_font = Font("monobit.ttf",16)
 key_states = {}
+current_framerate = 0
 FPS = 60
 
+def get_fps()->int:
+    return int(current_framerate)
+
 class Spritesheet:
+    _register = []
+
     def __init__(self, sprite:str, sprite_width:int=8, sprite_height:int=8):
         self.sprite = pygame.image.load(sprite)
         self.sprite_width = sprite_width
         self.sprite_height = sprite_height
         self.sprites_per_row = self.sprite.get_width() // sprite_width
-        self.sprites = self.cache_sprites()
+        Spritesheet._register.append(self)
 
-    def cache_sprites(self):
+    def preload_sprites(self,scale):
         sprites = []
         for index in range(self.sprites_per_row * (self.sprite.get_height() // self.sprite_height)):
             row = index // self.sprites_per_row
@@ -28,45 +40,63 @@ class Spritesheet:
             x = col * self.sprite_width
             y = row * self.sprite_height
             sprite = self.sprite.subsurface(pygame.Rect(x, y, self.sprite_width, self.sprite_height))
-            sprites.append(sprite)
-        return sprites
+            sprites.append(pygame.transform.scale(sprite, (sprite.get_width() * scale, sprite.get_height() * scale)))
+        self.sprites = sprites
 
-    def spr(self, x, y, index):
+    def draw_sprite(self, x, y, index):
         sprite = self.sprites[index]
-        sprite = pygame.transform.scale(sprite, (sprite.get_width() * scale, sprite.get_height() * scale))
         screen.blit(sprite, (x*scale, y*scale))
 
-def run(update_function, title:str="boopy", icon:str=None, screen_width:int=128, screen_height:int=128, scaling:int=1, fullscreen:bool=False):
-    global screen, clock, scale
+def run(update_function, title:str="boopy", icon:str=None, screen_width:int=128, screen_height:int=128, scaling:int=1, fullscreen:bool=False, fps_cap:typing.Optional[int]=60):
+    global screen, clock, scale, FPS, current_framerate
 
+    FPS = fps_cap
     scale = scaling
 
-    # Set up the display
+    for t in Spritesheet._register:
+        t.preload_sprites(scale)
+    for t in Sprite._register:
+        t.preload_sprite(scale)
+    for t in Tilemap._register:
+        t.preload_tilemap(scale)
+    
+    # sprites, spritesheets & tilemaps's surfaces must be preloaded after boopy is ran, when the scale has been defined
+
+    # set up the display
     pygame.display.set_caption(title)
     if icon:
         pygame.display.set_icon(pygame.image.load(icon))
     if fullscreen:
-        width = get_monitors()[0].width
         height = get_monitors()[0].height
         scale = int(height/screen_height)
         screen = pygame.display.set_mode((screen_width * scale, screen_height * scale),pygame.FULLSCREEN)
     else:
         screen = pygame.display.set_mode((screen_width * scale, screen_height * scale))
 
-    # Set up the clock
     clock = pygame.time.Clock()
 
-    # Run the game loop
+    # game loop
     while True:
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
                 exit()
 
+        current_framerate = clock.get_fps()
         update_function()
-
         pygame.display.flip()
-        clock.tick(FPS)
+        if FPS:
+            clock.tick(FPS)
+
+def get_csv_file_as_lists(filename:str)->list[list]:
+    csv_reader = csv.reader(open(filename))
+    return [[int(value) for value in row if value] for row in csv_reader]
+
+def draw_text(x:int,y:int,text:str,color:tuple=(255,255,255),font:Font=default_font):
+    """Draw text to the screen. Uses Font objects."""
+    text_surface = font.render(text,False,color)
+    
+    screen.blit(pygame.transform.scale(text_surface, (text_surface.get_width() * scale, text_surface.get_height() * scale)),(x*scale,y*scale))
 
 def mouse()->tuple:
     """Return the mouse position relative to the game window as a tuple"""
@@ -114,35 +144,48 @@ def btnp(key:int|list[int])->bool:
 def cls(color=(0, 0, 0)):
     screen.fill(color)
 
-def load_spr(sprite:str):
-    return pygame.image.load(sprite)
-
 def rect(x: int, y: int, x2: int, y2: int, color: tuple = (0, 0, 0)) -> None:
     pygame.draw.rect(screen, color, (x*scale, y*scale, x2*scale - x*scale, y2*scale - y*scale))
 
-def spr(x, y, sprite):
-    sprite = pygame.transform.scale(sprite, (sprite.get_width() * scale, sprite.get_height() * scale))
-    screen.blit(sprite, (x * scale, y * scale))
+class Sprite:
+    _register:list = []
+    def __init__(self, sprite:str):
+        self.sprite_filename = sprite
+        self.sprite = None
+        Sprite._register.append(self)
+    
+    def preload_sprite(self,scale):
+        s = pygame.image.load(self.sprite_filename)
+        self.sprite = pygame.transform.scale(s, (s.get_width() * scale, s.get_height() * scale))
 
-def tilemap(x:int, y:int, tileset:Spritesheet, map_data:list[int], map_x:int=0, map_y:int=0, map_width:int=None, map_height:int=None):
-    """Draws a tilemap to the screen. The parameters x and y specifies where on the screen to draw the tilemap, while map_x and map_y specifies where in the tilemap to read tiles from.
-    Parameters map_width and map_height control how much of the tilemap to read. If left at None they will take the entire width of the tilemap."""
-    tile_width = tileset.sprite_width
-    tile_height = tileset.sprite_height
+class Tilemap:
+    _register:list = []
+    def __init__(self, tileset, map_data):
+        self.tileset = tileset
+        self.map_data = map_data
+        self.tile_width = tileset.sprite_width
+        self.tile_height = tileset.sprite_height
+        Tilemap._register.append(self)
 
-    if not map_data:
-        return
+    def preload_tilemap(self,scale:int):
+        map_width = len(self.map_data[0])
+        map_height = len(self.map_data)
+        surface = pygame.Surface((map_width * self.tile_width, map_height * self.tile_height))
 
-    if map_width == None:
-        map_width = len(map_data)
-    if map_height == None:
-        map_height = len(map_data[0])
+        for row_index in range(map_height):
+            for col_index in range(map_width):
+                tile_index = self.map_data[row_index][col_index]
+                tile_x = col_index * self.tile_width
+                tile_y = row_index * self.tile_height
+                sprite = self.tileset.sprites[tile_index]
+                sprite = pygame.transform.scale(sprite, (self.tile_width, self.tile_height))
+                surface.blit(sprite, (tile_x, tile_y))
 
-    for row_index in range(map_y, map_y + map_height):
-        for col_index in range(map_x, map_x + map_width):
-            tile_index = map_data[row_index][col_index]
-            tile_x = col_index * tile_width
-            tile_y = row_index * tile_height
-            sprite = tileset.sprites[tile_index]
-            sprite = pygame.transform.scale(sprite, (tile_width * scale, tile_height * scale))
-            screen.blit(sprite, ((x + tile_x - map_x * tile_width) * scale, (y + tile_y - map_y * tile_height) * scale))
+        
+        self.map_surface = pygame.transform.scale(surface, (surface.get_width()*scale,surface.get_height()*scale))
+    
+def draw_tilemap(x, y, tilemap: Tilemap):
+    screen.blit(tilemap.map_surface, (x * scale, y * scale))   
+
+def draw_sprite(x, y, sprite: Sprite):
+    screen.blit(sprite.sprite, (x * scale, y * scale))

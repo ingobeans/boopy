@@ -1,19 +1,20 @@
-import boopy, json
+import boopy, csv
 
 player_x = 16*8
 player_y = 16*8
 
 spritesheet = boopy.Spritesheet("spritesheet.png",8,8)
-player_sprite = boopy.load_spr("player.png")
+player_sprite = boopy.Sprite("player.png")
 
-screen_width=184
-screen_height=160
+screen_width=128
+screen_height=128
 
-with open("tilemap.json") as f:
-    tilemap = json.load(f)
-    # Currently there's no proper way to create tilemaps
-    # I created this tilemap using https://edwardscamera.github.io/array-map-creator/
-    # Export to python and you're all good!
+tilemap_data = boopy.get_csv_file_as_lists("example_tiled_tilemap.csv")
+# boopy draws expects tilemaps to be represented as a 2D list
+# however, if you want to use a tilemap in CSV format (Like Tiled does - https://thorbjorn.itch.io/tiled):
+# the get_csv_file_as_lists() function converts a csv file to a 2D list
+
+tilemap = boopy.Tilemap(spritesheet,tilemap_data)
 
 def update():
     global player_x
@@ -27,9 +28,9 @@ def update():
     if boopy.btn(boopy.K_UP):
         player_y -= 1
 
-    boopy.cls((0,0,0)) #clear the screen    
-    boopy.tilemap(-player_x+screen_width/2,-player_y+screen_height/2,spritesheet,tilemap)
-    
-    boopy.spr(screen_width/2,screen_height/2,player_sprite)
+    boopy.cls((0,0,0))
+    boopy.draw_tilemap(-player_x+screen_width/2,-player_y+screen_height/2,tilemap)
+    boopy.draw_sprite(screen_width/2,screen_height/2,player_sprite)
+    boopy.draw_text(1,-5,f"{boopy.get_fps()} FPS")
 
-boopy.run(update_function=update,screen_width=screen_width,screen_height=screen_height,scaling=5)
+boopy.run(update_function=update,screen_width=screen_width,screen_height=screen_height,scaling=5,fps_cap=90)
