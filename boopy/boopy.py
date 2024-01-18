@@ -58,8 +58,10 @@ def run(update_function, title:str="boopy", icon:str=None, screen_width:int=128,
 
     # set up the display
     pygame.display.set_caption(title)
-    if icon:
-        pygame.display.set_icon(pygame.image.load(icon))
+    
+    icon = icon if icon != None else pkg_resources.resource_filename(__name__, "icon.png")
+    pygame.display.set_icon(pygame.image.load(icon))
+    
     if fullscreen:
         height = get_monitors()[0].height
         scale = height//screen_height
