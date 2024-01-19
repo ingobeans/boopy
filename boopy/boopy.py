@@ -68,9 +68,7 @@ def run(update_function, title:str="boopy", icon:str=None, screen_width:int=128,
     if fullscreen:
         height = get_monitors()[0].height
         scale = height//screen_height
-        screen = pygame.display.set_mode((screen_width * scale, screen_height * scale), flags, vsync=vsync)
-    else:
-        screen = pygame.display.set_mode((screen_width * scale, screen_height * scale), flags, vsync=vsync)
+    screen = pygame.display.set_mode((screen_width * scale, screen_height * scale), flags, vsync=vsync)
 
     for t in Spritesheet._register:
         t.preload_sprites(scale)
