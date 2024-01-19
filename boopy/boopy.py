@@ -47,7 +47,7 @@ class Spritesheet:
         sprite = self.sprites[index]
         screen.blit(sprite, (x*scale, y*scale))
 
-def run(update_function, title:str="boopy", icon:str=None, screen_width:int=128, screen_height:int=128, scaling:int=1, fullscreen:bool=False, fps_cap:typing.Optional[int]=60):
+def run(update_function, title:str="boopy", icon:str=None, screen_width:int=128, screen_height:int=128, scaling:int=1, fullscreen:bool=False, fps_cap:typing.Optional[int]=60, vsync:bool=False):
     """Runs game. Update_function is the function that will be called each frame. Parameter fps_cap can be an integer or set to None, which will unlock the frame rate.
     
     Scaling is how much to scale up the game window. If fullscreen is True, this will be ignored."""
@@ -62,12 +62,15 @@ def run(update_function, title:str="boopy", icon:str=None, screen_width:int=128,
     icon = icon if icon != None else pkg_resources.resource_filename(__name__, "icon.png")
     pygame.display.set_icon(pygame.image.load(icon))
     
+    flags = pygame.FULLSCREEN | pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.SCALED if fullscreen else pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.SCALED
+    vsync = 1 if vsync else 0
+
     if fullscreen:
         height = get_monitors()[0].height
         scale = height//screen_height
-        screen = pygame.display.set_mode((screen_width * scale, screen_height * scale),pygame.FULLSCREEN)
+        screen = pygame.display.set_mode((screen_width * scale, screen_height * scale), flags, vsync=vsync)
     else:
-        screen = pygame.display.set_mode((screen_width * scale, screen_height * scale))
+        screen = pygame.display.set_mode((screen_width * scale, screen_height * scale), flags, vsync=vsync)
 
     for t in Spritesheet._register:
         t.preload_sprites(scale)
@@ -88,7 +91,6 @@ def run(update_function, title:str="boopy", icon:str=None, screen_width:int=128,
             if event.type == QUIT:
                 pygame.quit()
                 exit()
-
         if FPS != None:
             current_framerate = clock.get_fps()
         else:
