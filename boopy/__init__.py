@@ -18,6 +18,7 @@ default_font = Font(pkg_resources.resource_filename(__name__, "monobit.ttf"),16)
 key_states = {}
 current_framerate = 0
 FPS = 60
+running = False
 
 class Spritesheet:
     _register = []
@@ -28,6 +29,8 @@ class Spritesheet:
         self.sprite_height = sprite_height
         self.sprites_per_row = self.sprite.get_width() // sprite_width
         Spritesheet._register.append(self)
+        if running:
+            self.preload_sprites(scale)
 
     def preload_sprites(self,scale):
         sprites = []
@@ -50,6 +53,8 @@ class Sprite:
         self.sprite_filename = sprite
         self.sprite = None
         Sprite._register.append(self)
+        if running:
+            self.preload_sprite(scale)
     
     def preload_sprite(self,scale):
         s = pygame.image.load(self.sprite_filename)
@@ -63,6 +68,8 @@ class Tilemap:
         self.tile_width = tileset.sprite_width
         self.tile_height = tileset.sprite_height
         Tilemap._register.append(self)
+        if running:
+            self.preload_tilemap(scale)
 
     def preload_tilemap(self,scale:int):
         map_width = len(self.map_data[0])
@@ -88,18 +95,20 @@ def run(update_function, title:str="boopy", icon:str=None, screen_width:int=128,
     """Runs game. Update_function is the function that will be called each frame. Parameter fps_cap can be an integer or set to None, which will unlock the frame rate.
     
     Scaling is how much to scale up the game window. If fullscreen is True, this will be ignored."""
-    global screen, clock, scale, FPS, current_framerate
+    global screen, clock, scale, FPS, current_framerate, running
+
+    running = True
 
     FPS = fps_cap
     scale = scaling
-
+    
     # set up the display
     pygame.display.set_caption(title)
     
     icon = icon if icon != None else pkg_resources.resource_filename(__name__, "icon.png")
     pygame.display.set_icon(pygame.image.load(icon))
     
-    flags = FULLSCREEN | HWSURFACE | DOUBLEBUF | SCALED if fullscreen else HWSURFACE | DOUBLEBUF | SCALED
+    flags = pygame.NOFRAME | pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.SCALED if fullscreen else pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.SCALED
     vsync = 1 if vsync else 0
 
     if fullscreen:
