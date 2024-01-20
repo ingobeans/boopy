@@ -99,7 +99,7 @@ def run(update_function, title:str="boopy", icon:str=None, screen_width:int=128,
     icon = icon if icon != None else pkg_resources.resource_filename(__name__, "icon.png")
     pygame.display.set_icon(pygame.image.load(icon))
     
-    flags = pygame.FULLSCREEN | pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.SCALED if fullscreen else pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.SCALED
+    flags = FULLSCREEN | HWSURFACE | DOUBLEBUF | SCALED if fullscreen else HWSURFACE | DOUBLEBUF | SCALED
     vsync = 1 if vsync else 0
 
     if fullscreen:
