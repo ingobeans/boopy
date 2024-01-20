@@ -17,4 +17,4 @@ Otherwise, here is a general guide:
 * Here you should probably also define your sprites, spritesheets and tilemaps.
 * In your functions you can use `boopy.btn()` to check for keys being pressed. Pass a key, ex. `boopy.K_RIGHT` or `boopy.K_d`, or a list of keys to check.
 * You can also use `boopy.btnp()` to only check for buttons just pressed.
-* Finally, use boopy.run() to run the game. The run function requires a reference to your games update function.
+* Finally, use boopy.run() to run the game. The run function requires a reference to your games update function. If you're encountering stuttering I recommend turning off the FPS cap and enabling VSync.
