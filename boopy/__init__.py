@@ -3,10 +3,9 @@ import contextlib
 with contextlib.redirect_stdout(None):
     import pygame
 
-from pygame.locals import *
-from pygame.font import *
-import pygame._sdl2 as sdl2
 
+from pygame import Font
+from pygame.constants import *
 import csv, typing, pkg_resources, time
 
 pygame.init()
@@ -118,9 +117,9 @@ def run(update_function, title:str="boopy", icon:str=None, screen_width:int=128,
             else:
                 flags = HIDDEN | SCALED
                 screen = pygame.display.set_mode((screen_width, screen_height), flags, vsync=vsync)
-                window = sdl2.Window.from_display_module()
+                window = pygame.Window.from_display_module()
                 window.size = (screen_width * scaling, screen_height * scaling)
-                window.position = sdl2.WINDOWPOS_CENTERED
+                window.position = WINDOWPOS_CENTERED
                 window.show()
         else:
             flags = SCALED
@@ -141,7 +140,7 @@ def run(update_function, title:str="boopy", icon:str=None, screen_width:int=128,
     # game loop
     while True:
         for event in pygame.event.get():
-            if event.type == QUIT:
+            if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
         if FPS != None:

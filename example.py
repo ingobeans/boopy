@@ -7,8 +7,8 @@ spritesheet = boopy.Spritesheet("spritesheet.png",8,8)
 player_sprite = boopy.Sprite("player.png")
 
 tilemap_data = boopy.get_csv_file_as_lists("example_tiled_tilemap.csv")
-# boopy draws expects tilemaps to be represented as a 2D list
-# however, if you want to use a tilemap in CSV format (Like Tiled does - https://thorbjorn.itch.io/tiled):
+# boopy expects tilemaps to be represented as a 2D list
+# however, if you want to use a tilemap in CSV format (Like Tiled exports to - https://thorbjorn.itch.io/tiled):
 # the get_csv_file_as_lists() function converts a csv file to a 2D list
 
 tilemap = boopy.Tilemap(spritesheet,tilemap_data)

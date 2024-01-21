@@ -5,6 +5,7 @@ Boopy is a Pygame based game engine for Python. It's main focus is to be **intui
 ## Installation
 
 * Download boopy
+* Run `pip install pygame-ce` (if you already have pygame installed, uninstall it. The pygame-ce version is a community made fork of pygame with improved performance and maintenance)
 * In the boopy folder, run `pip install --upgrade .`
 
 ## Usage
