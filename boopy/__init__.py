@@ -5,6 +5,7 @@ with contextlib.redirect_stdout(None):
 
 from pygame.locals import *
 from pygame.font import *
+import pygame._sdl2 as sdl2
 
 import csv, typing, pkg_resources, time
 
@@ -12,7 +13,6 @@ pygame.init()
 
 screen = None
 clock = None
-scale = 1
 default_font = Font(pkg_resources.resource_filename(__name__, "monobit.ttf"),16)
 key_states = {}
 current_framerate = 0
@@ -29,9 +29,9 @@ class Spritesheet:
         self.sprites_per_row = self.sprite.get_width() // sprite_width
         Spritesheet._register.append(self)
         if running:
-            self.preload_sprites(scale)
+            self.preload_sprites()
 
-    def preload_sprites(self,scale):
+    def preload_sprites(self):
         sprites = []
         for index in range(self.sprites_per_row * (self.sprite.get_height() // self.sprite_height)):
             row = index // self.sprites_per_row
@@ -39,10 +39,7 @@ class Spritesheet:
             x = col * self.sprite_width
             y = row * self.sprite_height
             sprite = self.sprite.subsurface(pygame.Rect(x, y, self.sprite_width, self.sprite_height))
-            if scale != 1:
-                sprite = pygame.transform.scale(sprite, (sprite.get_width() * scale, sprite.get_height() * scale))
-            else:
-                sprite = sprite.convert_alpha()
+            sprite = sprite.convert_alpha()
             sprites.append(sprite)
         
         self.sprites = sprites
@@ -58,11 +55,11 @@ class Sprite:
         self.sprite = None
         Sprite._register.append(self)
         if running:
-            self.preload_sprite(scale)
+            self.preload_sprite()
     
-    def preload_sprite(self,scale):
+    def preload_sprite(self):
         s = pygame.image.load(self.sprite_filename)
-        self.sprite = pygame.transform.scale(s, (s.get_width() * scale, s.get_height() * scale)) if scale != 1 else s
+        self.sprite = s
 
 class Tilemap:
     _register:list = []
@@ -73,9 +70,9 @@ class Tilemap:
         self.tile_height = tileset.sprite_height
         Tilemap._register.append(self)
         if running:
-            self.preload_tilemap(scale)
+            self.preload_tilemap()
 
-    def preload_tilemap(self,scale:int):
+    def preload_tilemap(self):
         map_width = len(self.map_data[0])
         map_height = len(self.map_data)
         surface = pygame.Surface((map_width * self.tile_width, map_height * self.tile_height))
@@ -86,11 +83,9 @@ class Tilemap:
                 tile_x = col_index * self.tile_width
                 tile_y = row_index * self.tile_height
                 sprite = self.tileset.sprites[tile_index]
-                if scale != 1:
-                    sprite = pygame.transform.scale(sprite, (self.tile_width, self.tile_height))
                 surface.blit(sprite, (tile_x, tile_y))
 
-        self.map_surface = pygame.transform.scale(surface, (surface.get_width()*scale,surface.get_height()*scale)).convert() if scale != 1 else surface.convert()
+        self.map_surface = surface.convert()
     
     def get_tile(self,x:int,y:int)->int:
         return self.map_data[y][x]
@@ -98,41 +93,46 @@ class Tilemap:
 def run(update_function, title:str="boopy", icon:str=None, screen_width:int=128, screen_height:int=128, scaling:int=None, fullscreen:bool=False, fps_cap:typing.Optional[int]=60, vsync:bool=False):
     """Runs game. Update_function is the function that will be called each frame. Parameter fps_cap can be an integer or set to None, which will unlock the frame rate.
     
-    Scaling is how much to scale up the game window. If None, will autoscale to fit screen (autoscaling is really good for performance)
+    Scaling is how much to scale up the game window. If None, will autoscale to fit screen.
     If fullscreen is True, scaling will be ignored"""
-    global screen, clock, scale, FPS, current_framerate, running
+    global screen, clock, FPS, current_framerate, running
 
     running = True
 
     FPS = fps_cap
-    scale = scaling
-    
     # set up the display
     pygame.display.set_caption(title)
-    
     icon = icon if icon != None else pkg_resources.resource_filename(__name__, "icon.png")
     pygame.display.set_icon(pygame.image.load(icon))
     
-    flags = HWSURFACE | DOUBLEBUF
-    if fullscreen:
-        flags |= FULLSCREEN | SCALED
-        scale = 1
-    elif scaling == None:
-        flags |= SCALED
-        scale = 1
-    
     vsync = 1 if vsync else 0
 
-    screen = pygame.display.set_mode((screen_width * scale, screen_height * scale), flags, vsync=vsync)
+    # the following mess is for setting up the screen
+    if fullscreen:
+        flags = SCALED | FULLSCREEN
+        screen = pygame.display.set_mode((screen_width, screen_height), flags, vsync=vsync)
+    else:
+        if scaling != None:
+            if scaling == 1:
+                screen = pygame.display.set_mode((screen_width, screen_height), vsync=vsync)
+            else:
+                flags = HIDDEN | SCALED
+                screen = pygame.display.set_mode((screen_width, screen_height), flags, vsync=vsync)
+                window = sdl2.Window.from_display_module()
+                window.size = (screen_width * scaling, screen_height * scaling)
+                window.position = sdl2.WINDOWPOS_CENTERED
+                window.show()
+        else:
+            flags = SCALED
+            screen = pygame.display.set_mode((screen_width, screen_height), flags, vsync=vsync)
 
-    for t in Spritesheet._register:
-        t.preload_sprites(scale)
-    for t in Sprite._register:
-        t.preload_sprite(scale)
-    for t in Tilemap._register:
-        t.preload_tilemap(scale)
-    
     # sprites, spritesheets & tilemaps's surfaces must be preloaded after boopy is ran, when the scale has been defined
+    for t in Spritesheet._register:
+        t.preload_sprites()
+    for t in Sprite._register:
+        t.preload_sprite()
+    for t in Tilemap._register:
+        t.preload_tilemap()
 
     clock = pygame.time.Clock()
     last_check = time.time()
@@ -215,16 +215,16 @@ def draw_text(x:int,y:int,text:str,color:tuple=(255,255,255),font:Font=default_f
     """Draw text to the screen. Uses Font objects."""
     text_surface = font.render(text,False,color)
     
-    screen.blit(pygame.transform.scale(text_surface, (text_surface.get_width() * scale, text_surface.get_height() * scale)) if scale != 1 else text_surface,(x*scale,y*scale))
+    screen.blit(text_surface,(x,y))
 
 def draw_rect(x: int, y: int, x2: int, y2: int, color: tuple = (0, 0, 0)) -> None:
-    pygame.draw.rect(screen, color, (x*scale, y*scale, x2*scale - x*scale, y2*scale - y*scale))
+    pygame.draw.rect(screen, color, (x, y, x2 - x, y2 - y))
 
 def draw_tilemap(x:int, y:int, tilemap: Tilemap):
-    screen.blit(tilemap.map_surface, (x * scale, y * scale))   
+    screen.blit(tilemap.map_surface, (x, y))   
 
 def draw_sprite(x:int, y:int, sprite: Sprite):
-    screen.blit(sprite.sprite, (x * scale, y * scale))
+    screen.blit(sprite.sprite, (x, y))
 
 def draw_spritesheet(x:int, y:int,spritesheet:Spritesheet,sprite_index:int):
-    screen.blit(spritesheet.get_sprite(sprite_index), (x * scale, y * scale))
+    screen.blit(spritesheet.get_sprite(sprite_index), (x, y))

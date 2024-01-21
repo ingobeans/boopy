@@ -37,4 +37,4 @@ def update():
     boopy.draw_text(1,-5,f"{boopy.get_fps()} FPS")
     boopy.draw_text(1,8,f"{tilemap.get_tile(player_x//8,player_y//8)} - Tile at player")
 
-boopy.run(update_function=update,screen_width=screen_width,screen_height=screen_height,scaling=None,fps_cap=80,vsync=1,fullscreen=False)
+boopy.run(update_function=update,screen_width=screen_width,screen_height=screen_height,scaling=7,fps_cap=None,vsync=False,fullscreen=False)
