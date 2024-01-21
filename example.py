@@ -29,12 +29,12 @@ def update():
         player_y -= 1
 
     boopy.cls((0,0,0))
-    boopy.draw_tilemap(-player_x+screen_width/2,-player_y+screen_height/2,tilemap)
+    boopy.draw_tilemap(-player_x + screen_width / 2, -player_y + screen_height / 2, tilemap)
 
-    boopy.draw_sprite(screen_width / 2 - 4,screen_height / 2 - 4,player_sprite)
+    boopy.draw_sprite(screen_width / 2 - 4, screen_height / 2 - 4, player_sprite)
     # draw the player sprite in the center of the screen (-4 to account for sprite offset, since sprites originate from top left corner)
 
     boopy.draw_text(1,-5,f"{boopy.get_fps()} FPS")
     boopy.draw_text(1,8,f"{tilemap.get_tile(player_x//8,player_y//8)} - Tile at player")
 
-boopy.run(update_function=update,screen_width=screen_width,screen_height=screen_height,scaling=5,fps_cap=None,vsync=1)
+boopy.run(update_function=update,screen_width=screen_width,screen_height=screen_height,scaling=None,fps_cap=80,vsync=1,fullscreen=False)

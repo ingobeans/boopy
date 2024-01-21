@@ -5,7 +5,6 @@ with contextlib.redirect_stdout(None):
 
 from pygame.locals import *
 from pygame.font import *
-from screeninfo import get_monitors
 
 import csv, typing, pkg_resources, time
 
@@ -40,7 +39,12 @@ class Spritesheet:
             x = col * self.sprite_width
             y = row * self.sprite_height
             sprite = self.sprite.subsurface(pygame.Rect(x, y, self.sprite_width, self.sprite_height))
-            sprites.append(pygame.transform.scale(sprite, (sprite.get_width() * scale, sprite.get_height() * scale)))
+            if scale != 1:
+                sprite = pygame.transform.scale(sprite, (sprite.get_width() * scale, sprite.get_height() * scale))
+            else:
+                sprite = sprite.convert_alpha()
+            sprites.append(sprite)
+        
         self.sprites = sprites
 
     def get_sprite(self, index):
@@ -58,7 +62,7 @@ class Sprite:
     
     def preload_sprite(self,scale):
         s = pygame.image.load(self.sprite_filename)
-        self.sprite = pygame.transform.scale(s, (s.get_width() * scale, s.get_height() * scale))
+        self.sprite = pygame.transform.scale(s, (s.get_width() * scale, s.get_height() * scale)) if scale != 1 else s
 
 class Tilemap:
     _register:list = []
@@ -82,19 +86,20 @@ class Tilemap:
                 tile_x = col_index * self.tile_width
                 tile_y = row_index * self.tile_height
                 sprite = self.tileset.sprites[tile_index]
-                sprite = pygame.transform.scale(sprite, (self.tile_width, self.tile_height))
+                if scale != 1:
+                    sprite = pygame.transform.scale(sprite, (self.tile_width, self.tile_height))
                 surface.blit(sprite, (tile_x, tile_y))
 
-        
-        self.map_surface = pygame.transform.scale(surface, (surface.get_width()*scale,surface.get_height()*scale))
+        self.map_surface = pygame.transform.scale(surface, (surface.get_width()*scale,surface.get_height()*scale)).convert() if scale != 1 else surface.convert()
     
     def get_tile(self,x:int,y:int)->int:
         return self.map_data[y][x]
 
-def run(update_function, title:str="boopy", icon:str=None, screen_width:int=128, screen_height:int=128, scaling:int=1, fullscreen:bool=False, fps_cap:typing.Optional[int]=60, vsync:bool=False):
+def run(update_function, title:str="boopy", icon:str=None, screen_width:int=128, screen_height:int=128, scaling:int=None, fullscreen:bool=False, fps_cap:typing.Optional[int]=60, vsync:bool=False):
     """Runs game. Update_function is the function that will be called each frame. Parameter fps_cap can be an integer or set to None, which will unlock the frame rate.
     
-    Scaling is how much to scale up the game window. If fullscreen is True, this will be ignored."""
+    Scaling is how much to scale up the game window. If None, will autoscale to fit screen (autoscaling is really good for performance)
+    If fullscreen is True, scaling will be ignored"""
     global screen, clock, scale, FPS, current_framerate, running
 
     running = True
@@ -108,12 +113,16 @@ def run(update_function, title:str="boopy", icon:str=None, screen_width:int=128,
     icon = icon if icon != None else pkg_resources.resource_filename(__name__, "icon.png")
     pygame.display.set_icon(pygame.image.load(icon))
     
-    flags = pygame.NOFRAME | pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.SCALED if fullscreen else pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.SCALED
+    flags = HWSURFACE | DOUBLEBUF
+    if fullscreen:
+        flags |= FULLSCREEN | SCALED
+        scale = 1
+    elif scaling == None:
+        flags |= SCALED
+        scale = 1
+    
     vsync = 1 if vsync else 0
 
-    if fullscreen:
-        height = get_monitors()[0].height
-        scale = height//screen_height
     screen = pygame.display.set_mode((screen_width * scale, screen_height * scale), flags, vsync=vsync)
 
     for t in Spritesheet._register:
@@ -206,7 +215,7 @@ def draw_text(x:int,y:int,text:str,color:tuple=(255,255,255),font:Font=default_f
     """Draw text to the screen. Uses Font objects."""
     text_surface = font.render(text,False,color)
     
-    screen.blit(pygame.transform.scale(text_surface, (text_surface.get_width() * scale, text_surface.get_height() * scale)),(x*scale,y*scale))
+    screen.blit(pygame.transform.scale(text_surface, (text_surface.get_width() * scale, text_surface.get_height() * scale)) if scale != 1 else text_surface,(x*scale,y*scale))
 
 def draw_rect(x: int, y: int, x2: int, y2: int, color: tuple = (0, 0, 0)) -> None:
     pygame.draw.rect(screen, color, (x*scale, y*scale, x2*scale - x*scale, y2*scale - y*scale))
