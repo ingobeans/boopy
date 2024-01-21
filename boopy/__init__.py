@@ -62,11 +62,12 @@ class Sprite:
 
 class Tilemap:
     _register:list = []
-    def __init__(self, tileset, map_data):
+    def __init__(self, tileset, map_data, transparency_color:tuple=None):
         self.tileset = tileset
         self.map_data = map_data
         self.tile_width = tileset.sprite_width
         self.tile_height = tileset.sprite_height
+        self.transparency_color = transparency_color
         Tilemap._register.append(self)
         if running:
             self.preload_tilemap()
@@ -79,18 +80,22 @@ class Tilemap:
         for row_index in range(self.map_height):
             for col_index in range(self.map_width):
                 tile_index = self.map_data[row_index][col_index]
+                if tile_index == -1:
+                    continue
                 tile_x = col_index * self.tile_width
                 tile_y = row_index * self.tile_height
                 sprite = self.tileset.sprites[tile_index]
                 surface.blit(sprite, (tile_x, tile_y))
 
+        if self.transparency_color != None:
+            surface.set_colorkey(self.transparency_color)
         self.map_surface = surface
     
     def get_tile(self,x:int,y:int)->int:
         if x < 0 or y < 0:
-            return 0
+            return -1
         elif y >= self.map_height or x >= self.map_width:
-            return 0
+            return -1
         return self.map_data[y][x]
 
 def run(update_function, title:str="boopy", icon:str=None, screen_width:int=128, screen_height:int=128, scaling:int=None, fullscreen:bool=False, fps_cap:typing.Optional[int]=60, vsync:bool=False):
