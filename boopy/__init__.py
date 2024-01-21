@@ -85,7 +85,7 @@ class Tilemap:
                 sprite = self.tileset.sprites[tile_index]
                 surface.blit(sprite, (tile_x, tile_y))
 
-        self.map_surface = surface.convert()
+        self.map_surface = surface
     
     def get_tile(self,x:int,y:int)->int:
         return self.map_data[y][x]
