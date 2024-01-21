@@ -72,12 +72,12 @@ class Tilemap:
             self.preload_tilemap()
 
     def preload_tilemap(self):
-        map_width = len(self.map_data[0])
-        map_height = len(self.map_data)
-        surface = pygame.Surface((map_width * self.tile_width, map_height * self.tile_height))
+        self.map_width = len(self.map_data[0])
+        self.map_height = len(self.map_data)
+        surface = pygame.Surface((self.map_width * self.tile_width, self.map_height * self.tile_height))
 
-        for row_index in range(map_height):
-            for col_index in range(map_width):
+        for row_index in range(self.map_height):
+            for col_index in range(self.map_width):
                 tile_index = self.map_data[row_index][col_index]
                 tile_x = col_index * self.tile_width
                 tile_y = row_index * self.tile_height
@@ -87,6 +87,10 @@ class Tilemap:
         self.map_surface = surface
     
     def get_tile(self,x:int,y:int)->int:
+        if x < 0 or y < 0:
+            return 0
+        elif y >= self.map_height or x >= self.map_width:
+            return 0
         return self.map_data[y][x]
 
 def run(update_function, title:str="boopy", icon:str=None, screen_width:int=128, screen_height:int=128, scaling:int=None, fullscreen:bool=False, fps_cap:typing.Optional[int]=60, vsync:bool=False):
