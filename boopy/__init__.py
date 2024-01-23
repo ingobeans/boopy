@@ -18,6 +18,25 @@ current_framerate = 0
 FPS = 60
 running = False
 
+class Sprite:
+    _register:list = []
+    def __init__(self, sprite:str|pygame.Surface):
+        "Create a new sprite object from a filepath string or directly pass a pygame Surface."
+        self.sprite_filename = sprite
+        Sprite._register.append(self)
+        if type(sprite) == str:
+            self.sprite = None
+            if running:
+                self.preload_sprite()
+        elif type(sprite) == pygame.Surface:
+            self.sprite = sprite
+    
+    def preload_sprite(self):
+        if self.sprite != None:
+            return
+        s = pygame.image.load(self.sprite_filename)
+        self.sprite = s
+
 class Spritesheet:
     _register = []
 
@@ -31,34 +50,37 @@ class Spritesheet:
             self.preload_sprites()
 
     def preload_sprites(self):
+        surfaces = []
         sprites = []
         for index in range(self.sprites_per_row * (self.sprite.get_height() // self.sprite_height)):
             row = index // self.sprites_per_row
             col = index % self.sprites_per_row
             x = col * self.sprite_width
             y = row * self.sprite_height
-            sprite = self.sprite.subsurface(pygame.Rect(x, y, self.sprite_width, self.sprite_height))
-            sprite = sprite.convert_alpha()
-            sprites.append(sprite)
+            surface = self.sprite.subsurface(pygame.Rect(x, y, self.sprite_width, self.sprite_height))
+            surface = surface.convert_alpha()
+            surfaces.append(surface)
+            sprites.append(Sprite(surface)) 
         
+        self.surfaces = surfaces
         self.sprites = sprites
 
-    def get_sprite(self, index):
-        return self.sprites[index]
+    def get_sprite_index_by_coordinate(self,x:int,y:int)->int:
+        index = y * self.sprites_per_row + x
+        return index
 
+    def get_sprite_coordinate_by_index(self,index:int):
+        x = index % self.sprites_per_row
+        y = index // self.sprites_per_row
+        return x, y
 
-class Sprite:
-    _register:list = []
-    def __init__(self, sprite:str):
-        self.sprite_filename = sprite
-        self.sprite = None
-        Sprite._register.append(self)
-        if running:
-            self.preload_sprite()
+    def get_sprite_surface(self, index:int)->pygame.Surface:
+        "Gets the pygame Surface of a sprite in the spritesheet by index. Used by Tilemaps"
+        return self.surfaces[index]
     
-    def preload_sprite(self):
-        s = pygame.image.load(self.sprite_filename)
-        self.sprite = s
+    def get_sprite(self, index:int)->Sprite:
+        "Gets a Sprite from spritesheet by index. To use a coordinate, use the get_sprite_index_by_coordinate() function to get index first."
+        return self.sprites[index]
 
 class Tilemap:
     _register:list = []
@@ -84,7 +106,7 @@ class Tilemap:
                     continue
                 tile_x = col_index * self.tile_width
                 tile_y = row_index * self.tile_height
-                sprite = self.tileset.sprites[tile_index]
+                sprite = self.tileset.surfaces[tile_index]
                 surface.blit(sprite, (tile_x, tile_y))
 
         if self.transparency_color != None:
@@ -235,4 +257,4 @@ def draw_sprite(x:int, y:int, sprite: Sprite):
     screen.blit(sprite.sprite, (x, y))
 
 def draw_spritesheet(x:int, y:int,spritesheet:Spritesheet,sprite_index:int):
-    screen.blit(spritesheet.get_sprite(sprite_index), (x, y))
+    screen.blit(spritesheet.get_sprite_surface(sprite_index), (x, y))

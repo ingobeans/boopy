@@ -17,8 +17,8 @@ screen_width=128
 screen_height=128
 
 def update():
-    global player_x
-    global player_y
+    global player_x, player_y
+
     if boopy.btn(boopy.K_RIGHT):
         player_x += 1
     if boopy.btn(boopy.K_LEFT):
