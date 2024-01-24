@@ -36,6 +36,8 @@ class Sprite:
             return
         s = pygame.image.load(self.sprite_filename)
         self.sprite = s
+        self.width = s.get_width()
+        self.height = s.get_height()
 
 class Spritesheet:
     _register = []
