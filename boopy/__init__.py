@@ -249,8 +249,8 @@ def draw_text(x:int,y:int,text:str,color:tuple=(255,255,255),font:Font=default_f
     
     screen.blit(text_surface,(x,y))
 
-def draw_rect(x: int, y: int, x2: int, y2: int, color: tuple = (0, 0, 0)) -> None:
-    pygame.draw.rect(screen, color, (x, y, x2 - x, y2 - y))
+def draw_rect(from_x:int, from_y:int, to_x:int, to_y:int, color: tuple = (0, 0, 0)) -> None:
+    pygame.draw.rect(screen, color, (from_x, from_y, to_x - from_x, to_y - from_y))
 
 def draw_tilemap(x:int, y:int, tilemap: Tilemap):
     screen.blit(tilemap.map_surface, (x, y))   
