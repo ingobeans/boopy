@@ -260,3 +260,6 @@ def draw_sprite(x:int, y:int, sprite: Sprite):
 
 def draw_spritesheet(x:int, y:int,spritesheet:Spritesheet,sprite_index:int):
     screen.blit(spritesheet.get_sprite_surface(sprite_index), (x, y))
+
+def draw_line(from_x:int, from_y:int, to_x:int, to_y:int, color: tuple = (0, 0, 0), width:int=1):
+    pygame.draw.line(screen,color,(from_x,from_y),(to_x,to_y),width)
