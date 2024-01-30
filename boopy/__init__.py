@@ -263,3 +263,6 @@ def draw_spritesheet(x:int, y:int,spritesheet:Spritesheet,sprite_index:int):
 
 def draw_line(from_x:int, from_y:int, to_x:int, to_y:int, color: tuple = (0, 0, 0), width:int=1):
     pygame.draw.line(screen,color,(from_x,from_y),(to_x,to_y),width)
+
+def draw_pixel(x:int, y:int, color: tuple = (0, 0, 0)):
+    screen.set_at(x,y,color)
