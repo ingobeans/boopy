@@ -255,6 +255,10 @@ def draw_rect(from_x:int, from_y:int, to_x:int, to_y:int, color: tuple = (0, 0, 
 def draw_circle(x:int, y:int, radius:float, color: tuple = (0,0,0)):
     pygame.draw.circle(screen, color, (x,y), radius) 
 
+def draw_ellipse(x:int, y:int, width:float, height:float, color: tuple = (0,0,0)):
+    bounding_box = pygame.Rect(x - width / 2, y - height / 2, width, height)
+    pygame.draw.ellipse(screen, color, bounding_box)
+
 def draw_tilemap(x:int, y:int, tilemap: Tilemap):
     screen.blit(tilemap.map_surface, (x, y))   
 
