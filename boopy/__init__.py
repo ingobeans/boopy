@@ -194,9 +194,13 @@ def get_csv_file_as_lists(filename:str)->list[list]:
     csv_reader = csv.reader(open(filename))
     return [[int(value) for value in row if value] for row in csv_reader]
 
-def mouse()->tuple:
+def mouse_pos()->tuple:
     """Return the mouse position relative to the game window as a tuple"""
     pygame.mouse.get_pos()
+
+def mouse_down()->bool:
+    """Returns if left mouse is pressed down"""
+    return pygame.mouse.get_pressed()[0] == 1
 
 def btn(key)->bool:
     """Return bool whether a key is pressed. Accepts either list of keys to check for, or single key.
