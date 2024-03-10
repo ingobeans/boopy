@@ -196,7 +196,7 @@ def get_csv_file_as_lists(filename:str)->list[list]:
 
 def mouse_pos()->tuple:
     """Return the mouse position relative to the game window as a tuple"""
-    pygame.mouse.get_pos()
+    return pygame.mouse.get_pos()
 
 def mouse_down()->bool:
     """Returns if left mouse is pressed down"""
