@@ -198,9 +198,9 @@ def mouse_pos()->tuple:
     """Return the mouse position relative to the game window as a tuple"""
     return pygame.mouse.get_pos()
 
-def mouse_down()->bool:
-    """Returns if left mouse is pressed down"""
-    return pygame.mouse.get_pressed()[0] == 1
+def mouse_down(button = 0)->bool:
+    """Returns if mouse is pressed down. Button 0: left click. 1: middle mouse button click. 2: right click. 3 onwards: additional buttons"""
+    return pygame.mouse.get_pressed()[button] == 1
 
 def btn(key)->bool:
     """Return bool whether a key is pressed. Accepts either list of keys to check for, or single key.
