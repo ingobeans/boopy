@@ -198,9 +198,9 @@ def mouse_pos()->tuple:
     """Return the mouse position relative to the game window as a tuple"""
     return pygame.mouse.get_pos()
 
-def mouse_down(button = 0)->bool:
-    """Returns if mouse is pressed down. Button 0: left click. 1: middle mouse button click. 2: right click. 3 onwards: additional buttons"""
-    return pygame.mouse.get_pressed()[button] == 1
+def mouse_down()->bool:
+    """Returns if left mouse is pressed down"""
+    return pygame.mouse.get_pressed()[0] == 1
 
 def btn(key)->bool:
     """Return bool whether a key is pressed. Accepts either list of keys to check for, or single key.
@@ -271,6 +271,9 @@ def draw_sprite(x:int, y:int, sprite: Sprite):
 
 def draw_spritesheet(x:int, y:int,spritesheet:Spritesheet,sprite_index:int):
     screen.blit(spritesheet.get_sprite_surface(sprite_index), (x, y))
+
+def draw_spritesheet_from_coordinate(x:int, y:int,spritesheet:Spritesheet,sprite_x:int,sprite_y:int):
+    screen.blit(spritesheet.get_sprite_surface(spritesheet.get_sprite_index_by_coordinate(sprite_x,sprite_y)), (x, y))
 
 def draw_line(from_x:int, from_y:int, to_x:int, to_y:int, color: tuple = (0, 0, 0), width:int=1):
     pygame.draw.line(screen,color,(from_x,from_y),(to_x,to_y),width)
