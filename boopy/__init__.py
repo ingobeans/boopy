@@ -100,6 +100,8 @@ class Tilemap:
         self.map_width = len(self.map_data[0])
         self.map_height = len(self.map_data)
         surface = pygame.Surface((self.map_width * self.tile_width, self.map_height * self.tile_height))
+        if self.transparency_color != None:
+            surface.fill(self.transparency_color)
 
         for row_index in range(self.map_height):
             for col_index in range(self.map_width):
