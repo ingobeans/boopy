@@ -86,7 +86,7 @@ class Spritesheet:
 
 class Tilemap:
     _register:list = []
-    def __init__(self, tileset, map_data, transparency_color:tuple=None):
+    def __init__(self, tileset, map_data, transparency_color:tuple=(0,0,0)):
         self.tileset = tileset
         self.map_data = map_data
         self.tile_width = tileset.sprite_width
@@ -100,8 +100,7 @@ class Tilemap:
         self.map_width = len(self.map_data[0])
         self.map_height = len(self.map_data)
         surface = pygame.Surface((self.map_width * self.tile_width, self.map_height * self.tile_height))
-        if self.transparency_color != None:
-            surface.fill(self.transparency_color)
+        surface.fill(self.transparency_color)
 
         for row_index in range(self.map_height):
             for col_index in range(self.map_width):
@@ -113,8 +112,7 @@ class Tilemap:
                 sprite = self.tileset.surfaces[tile_index]
                 surface.blit(sprite, (tile_x, tile_y))
 
-        if self.transparency_color != None:
-            surface.set_colorkey(self.transparency_color)
+        surface.set_colorkey(self.transparency_color)
         self.map_surface = surface
     
     def get_tile(self,x:int,y:int)->int:
