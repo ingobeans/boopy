@@ -89,6 +89,8 @@ class Tilemap:
     def __init__(self, tileset, map_data, transparency_color:tuple=(0,0,0)):
         self.tileset = tileset
         self.map_data = map_data
+        self.map_width = len(self.map_data[0])
+        self.map_height = len(self.map_data)
         self.tile_width = tileset.sprite_width
         self.tile_height = tileset.sprite_height
         self.transparency_color = transparency_color
@@ -97,8 +99,6 @@ class Tilemap:
             self.preload_tilemap()
 
     def preload_tilemap(self):
-        self.map_width = len(self.map_data[0])
-        self.map_height = len(self.map_data)
         surface = pygame.Surface((self.map_width * self.tile_width, self.map_height * self.tile_height))
         surface.fill(self.transparency_color)
 
