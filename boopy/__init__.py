@@ -255,6 +255,10 @@ def draw_text(x:int,y:int,text:str,color:tuple=(255,255,255),font:Font=default_f
     
     screen.blit(text_surface,(x,y))
 
+def get_text_size(text:str,font:Font=default_font)->tuple:
+    """Get width, height of a text without rendering it."""
+    return font.size(text)
+
 def draw_rect(from_x:int, from_y:int, to_x:int, to_y:int, color: tuple = (0, 0, 0)) -> None:
     pygame.draw.rect(screen, color, (from_x, from_y, to_x - from_x, to_y - from_y))
 
